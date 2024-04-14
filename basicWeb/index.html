@@ -11,6 +11,18 @@
   <body>
     <center>
       <h1>블루투스 웹컨트롤러</h1>
+      <button id="bluetoothButton">블루투스!</button>
+    
+      <script>
+      const bluetoothButton = document.getElementById("bluetoothButton")
+      
+      bluetoothButton.addEventListener("click", () => {
+        navigator.bluetooth.requestDevice({
+          filters: [{ services: ["0xFFE0"] }]
+        })
+      })
+      </script>
+      
       <p id="mois"></p>
       <p id="temp"></p>
       <p id="light"></p>
