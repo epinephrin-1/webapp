@@ -26,6 +26,21 @@
     <button id="connectButton" onclick="connect()">블루투스 연결</button>
 
     <script>
+      const bluetoothButton = document.getElementById("bluetoothButton");
+
+      bluetoothButton.addEventListener("click", async () => {
+        try {
+          const device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: ["0000ffe0-0000-1000-8000-00805f9b34fb"] }]
+          });
+          console.log('Connected to device:', device.name);
+
+        } catch (error) {
+          console.error('Connection failed:', error);
+        }
+      });
+      
+        
         let myDevice;
         let characteristic;
 
