@@ -1,75 +1,71 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>홍쌤의 블루투스 웹컨트롤러</title>
+    <title>Servo Motor Controller</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        button {
+            width: 200px;
+            height: 50px;
+            margin: 10px;
+            font-size: 20px;
+        }
+    </style>
 </head>
 <body>
-  <center>
-    <h1>블루투스 웹컨트롤러</h1>
-    <button id="bluetoothButton">블루투스</button>
+    <button id="increaseAngleButton" onclick="increaseAngle()">각도 +10°</button>
+    <button id="decreaseAngleButton" onclick="decreaseAngle()">각도 -10°</button>
+    <button id="connectButton" onclick="connect()">블루투스 연결</button>
 
     <script>
-      const bluetoothButton = document.getElementById("bluetoothButton");
+        let myDevice;
+        let characteristic;
 
-      bluetoothButton.addEventListener("click", async () => {
-        try {
-          const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ["0000ffe0-0000-1000-8000-00805f9b34fb"] }]
-          });
-          console.log('Connected to device:', device.name);
+        async function connect() {
+            try {
+                console.log('Requesting Bluetooth Device...');
+                myDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['DD1481CE-70E0-51D8-5C19-F946E9EB43A9'] // 서보모터 제어를 위한 GATT 서비스의 UUID를 입력하세요
+                });
 
-        } catch (error) {
-          console.error('Connection failed:', error);
+                const server = await myDevice.gatt.connect();
+                console.log('Connected to the device');
+
+                const service = await server.getPrimaryService('your_servo_service_uuid');
+                characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb'); // 서보모터 제어 특성의 UUID
+
+                document.getElementById('connectButton').disabled = true;
+                document.getElementById('increaseAngleButton').disabled = false;
+                document.getElementById('decreaseAngleButton').disabled = false;
+            } catch(error) {
+                console.log('There was an error: ' + error);
+            }
         }
-      });
-      
-      windowNavigator.bluetooth.requestDevice({
-        filters: [{ services: ["4번 결과 값"] }]
-      })
-      .then(function(device) {
-        getDevice(device)
-        return device.gatt.connect();
-      })
-      .then(function(server) {
-        return server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
-      })
-      .then(function(service) {
-        return service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
-      })
-      .then(function(characteristic) {
-        getCharacteristic(characteristic);
-      })
-      .catch(function(error) {
-        console.error('Connection failed!', error);
-      });
-      
-      function getDevice(device) {
-        device.addEventListener('gattserverdisconnected', () => {
-          alert("디바이스 연결이 끊어졌습니다.");
-        });
-      }
-      
-      function getCharacteristic(characteristic) {
-        characteristic.writeValue(new Uint8Array([0x04, 0x03, 0x02, 0x01]))
-      }
-      
-      function getCharacteristic(characteristic) {
-        characteristic.startNotifications().then(() => {
-          characteristic.addEventListener('characteristicvaluechanged', function(e) {
-            const value = e.target.value.getUint8(0).toString(10);
-            console.log(value);
-          });
-        })
-      }
 
-      
+        async function increaseAngle() {
+            if (!characteristic) {
+                console.log('Device is not connected.');
+                return;
+            }
+            await characteristic.writeValue(new Uint8Array([10])); // 서보모터 각도를 +10° 조절합니다.
+        }
+
+        async function decreaseAngle() {
+            if (!characteristic) {
+                console.log('Device is not connected.');
+                return;
+            }
+            await characteristic.writeValue(new Uint8Array([246])); // 서보모터 각도를 -10° 조절합니다. 246은 256 - 10으로 계산된 값입니다.
+        }
     </script>
-
-    
-
-    <button type="button" onclick="servo_up()">각도 +</button>
-    <button type="button" onclick="servo_down()">각도 -</button>
-  </center>
 </body>
 </html>
