@@ -25,14 +25,14 @@
         function connectToDeviceAndSubscribeToUpdates() {
             navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['DD1481CE-70E0-51D8-5C19-F946E9EB43A9'] // Serial Port Profile UUID
+                optionalServices: ['00001101-0000-1000-8000-00805f9b34fb'] // Serial Port Profile UUID
             })
             .then(device => {
                 bluetoothDevice = device;
                 return device.gatt.connect();
             })
-            .then(server => server.getPrimaryService('DD1481CE-70E0-51D8-5C19-F946E9EB43A9'))
-            .then(service => service.getCharacteristic('79FB165C-50FF-0782-005A-6D8CB738BF94'))
+            .then(server => server.getPrimaryService('00001101-0000-1000-8000-00805f9b34fb'))
+            .then(service => service.getCharacteristic('00001101-0000-1000-8000-00805f9b34fb'))
             .then(char => {
                 characteristic = char;
                 document.getElementById('status').textContent = 'Connected to ' + bluetoothDevice.name;
