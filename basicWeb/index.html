@@ -18,12 +18,55 @@
             filters: [{ services: ["0000ffe0-0000-1000-8000-00805f9b34fb"] }]
           });
           console.log('Connected to device:', device.name);
-          // 여기에 더 많은 로직을 추가할 수 있습니다. 예를 들어, GATT 서버에 연결
+
         } catch (error) {
           console.error('Connection failed:', error);
         }
       });
+      
+      windowNavigator.bluetooth.requestDevice({
+        filters: [{ services: ["4번 결과 값"] }]
+      })
+      .then(function(device) {
+        getDevice(device)
+        return device.gatt.connect();
+      })
+      .then(function(server) {
+        return server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+      })
+      .then(function(service) {
+        return service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+      })
+      .then(function(characteristic) {
+        getCharacteristic(characteristic);
+      })
+      .catch(function(error) {
+        console.error('Connection failed!', error);
+      });
+      
+      function getDevice(device) {
+        device.addEventListener('gattserverdisconnected', () => {
+          alert("디바이스 연결이 끊어졌습니다.");
+        });
+      }
+      
+      function getCharacteristic(characteristic) {
+        characteristic.writeValue(new Uint8Array([0x04, 0x03, 0x02, 0x01]))
+      }
+      
+      function getCharacteristic(characteristic) {
+        characteristic.startNotifications().then(() => {
+          characteristic.addEventListener('characteristicvaluechanged', function(e) {
+            const value = e.target.value.getUint8(0).toString(10);
+            console.log(value);
+          });
+        })
+      }
+
+      
     </script>
+
+    
 
     <button type="button" onclick="servo_up()">각도 +</button>
     <button type="button" onclick="servo_down()">각도 -</button>
