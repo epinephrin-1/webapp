@@ -1,48 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Arduino Bluetooth Connection</title>
+    <title>Servo Control via Bluetooth</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
         button {
             padding: 10px 20px;
             font-size: 16px;
-            cursor: pointer;
+            margin: 5px;
         }
     </style>
 </head>
 <body>
-    <button id="connect">Connect to Bluetooth Device</button>
-    <div id="status"></div>
+    <button id="increase">각도 올리기</button>
+    <button id="decrease">각도 내리기</button>
+    <div id="status">Not connected</div>
+
     <script>
-        const statusDiv = document.querySelector('#status');
+        let bluetoothDevice;
+        let characteristic;
 
-        document.querySelector('#connect').addEventListener('click', function() {
-            // 블루투스 사용 권한 및 위치 서비스 활성화를 안내
-            if (!navigator.bluetooth) {
-                statusDiv.textContent = 'Bluetooth API not available in this browser.';
-                return;
-            }
+        document.getElementById('increase').addEventListener('click', () => controlServo(10)); // 각도 올리기 명령
+        document.getElementById('decrease').addEventListener('click', () => controlServo(246)); // 각도 내리기 명령
 
-            statusDiv.textContent = 'Requesting Bluetooth device...';
+        function connectToDeviceAndSubscribeToUpdates() {
             navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['DD1481CE-70E0-51D8-5C19-F946E9EB43A9'] // 사용하려는 서비스의 UUID를 여기에 추가하세요.
+                optionalServices: ['00001101-0000-1000-8000-00805f9b34fb'] // Serial Port Profile UUID
             })
             .then(device => {
-                statusDiv.textContent = 'Connecting to ' + device.name + '...';
+                bluetoothDevice = device;
                 return device.gatt.connect();
             })
-            .then(server => {
-                statusDiv.textContent = 'Connected to ' + server.device.name;
+            .then(server => server.getPrimaryService('00001101-0000-1000-8000-00805f9b34fb'))
+            .then(service => service.getCharacteristic('00001101-0000-1000-8000-00805f9b34fb'))
+            .then(char => {
+                characteristic = char;
+                document.getElementById('status').textContent = 'Connected to ' + bluetoothDevice.name;
             })
             .catch(error => {
-                statusDiv.textContent = 'Connection failed: ' + error;
+                document.getElementById('status').textContent = 'Connection failed: ' + error;
             });
-        });
+        }
+
+        function controlServo(command) {
+            if (!characteristic) {
+                connectToDeviceAndSubscribeToUpdates();
+            } else {
+                const commandBytes = new Uint8Array([command]);
+                characteristic.writeValue(commandBytes)
+                .then(() => {
+                    console.log(`Sent command ${command} to servo`);
+                })
+                .catch(error => {
+                    console.error('Send failed:', error);
+                });
+            }
+        }
+
+        // 페이지 로드 시 자동 연결
+        window.onload = function() {
+            connectToDeviceAndSubscribeToUpdates();
+        };
     </script>
 </body>
 </html>
