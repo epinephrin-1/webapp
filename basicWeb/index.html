@@ -2,27 +2,45 @@
 <html>
 <head>
     <title>Arduino Bluetooth Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <button id="connect">Connect to Bluetooth Device</button>
+    <div id="status"></div>
     <script>
+        const statusDiv = document.querySelector('#status');
+
         document.querySelector('#connect').addEventListener('click', function() {
+            // 블루투스 사용 권한 및 위치 서비스 활성화를 안내
+            if (!navigator.bluetooth) {
+                statusDiv.textContent = 'Bluetooth API not available in this browser.';
+                return;
+            }
+
+            statusDiv.textContent = 'Requesting Bluetooth device...';
             navigator.bluetooth.requestDevice({
-                // 'acceptAllDevices'를 true로 설정하여 모든 장치를 볼 수 있게 하거나,
-                // 'filters'를 사용하여 특정 장치를 필터링할 수 있습니다.
                 acceptAllDevices: true,
                 optionalServices: ['battery_service'] // 사용하려는 서비스의 UUID를 여기에 추가하세요.
             })
             .then(device => {
-                console.log('Connecting to device...', device);
+                statusDiv.textContent = 'Connecting to ' + device.name + '...';
                 return device.gatt.connect();
             })
             .then(server => {
-                // 서버에 연결되면, 여기에서 더 많은 작업을 수행할 수 있습니다.
-                console.log('Connected to server', server);
+                statusDiv.textContent = 'Connected to ' + server.device.name;
             })
             .catch(error => {
-                console.error('Connection failed', error);
+                statusDiv.textContent = 'Connection failed: ' + error;
             });
         });
     </script>
