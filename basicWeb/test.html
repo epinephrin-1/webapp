@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LED Controller</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        button {
+            width: 200px;
+            height: 50px;
+            margin: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button id="onButton" onclick="turnOnLed()">On</button>
+    <button id="offButton" onclick="turnOffLed()" disabled>Off</button>
+    <button id="connectButton" onclick="connect()">블루투스 연결</button>
+
+    <script>
+        let myDevice;
+        let characteristic;
+
+        async function connect() {
+            try {
+                console.log('Requesting Bluetooth Device...');
+                myDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true, // 이 부분은 실제 프로젝트에서는 좀 더 구체적으로 설정해야 합니다.
+                    optionalServices: ['your_led_service_uuid'] // 여기에 LED를 제어하기 위한 GATT 서비스의 UUID를 입력합니다.
+                });
+
+                const server = await myDevice.gatt.connect();
+                console.log('Connected to the device');
+
+                const service = await server.getPrimaryService('your_led_service_uuid');
+                characteristic = await service.getCharacteristic('your_led_characteristic_uuid'); // LED 제어 특성의 UUID
+
+                document.getElementById('connectButton').disabled = true;
+                document.getElementById('onButton').disabled = false;
+            } catch(error) {
+                console.log('There was an error: ' + error);
+            }
+        }
+
+        async function turnOnLed() {
+            if (!characteristic) {
+                console.log('Device is not connected.');
+                return;
+            }
+            await characteristic.writeValue(new Uint8Array([1])); // LED를 켭니다.
+            document.getElementById('onButton').disabled = true;
+            document.getElementById('offButton').disabled = false;
+        }
+
+        async function turnOffLed() {
+            if (!characteristic) {
+                console.log('Device is not connected.');
+                return;
+            }
+            await characteristic.writeValue(new Uint8Array([0])); // LED를 끕니다.
+            document.getElementById('offButton').disabled = true;
+            document.getElementById('onButton').disabled = false;
+        }
+    </script>
+</body>
+</html>
