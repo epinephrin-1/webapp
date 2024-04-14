@@ -1,88 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Servo Motor Controller</title>
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        button {
-            width: 200px;
-            height: 50px;
-            margin: 10px;
-            font-size: 20px;
-        }
-    </style>
+    <title>Arduino Bluetooth Connection</title>
 </head>
 <body>
-    <button id="increaseAngleButton" onclick="increaseAngle()">각도 +10°</button>
-    <button id="decreaseAngleButton" onclick="decreaseAngle()">각도 -10°</button>
-    <button id="connectButton" onclick="connect()">블루투스 연결</button>
-    <button id="bluetoothButton" onclick="connect()">블루투스 연결</button>
-
-
+    <button id="connect">Connect to Bluetooth Device</button>
     <script>
-      const bluetoothButton = document.getElementById("bluetoothButton");
-
-      bluetoothButton.addEventListener("click", async () => {
-        try {
-          const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ["0000ffe0-0000-1000-8000-00805f9b34fb"] }]
-          });
-          console.log('Connected to device:', device.name);
-
-        } catch (error) {
-          console.error('Connection failed:', error);
-        }
-      });
-      
-        
-        let myDevice;
-        let characteristic;
-
-        async function connect() {
-            try {
-                console.log('Requesting Bluetooth Device...');
-                myDevice = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: ['DD1481CE-70E0-51D8-5C19-F946E9EB43A9'] // 서보모터 제어를 위한 GATT 서비스의 UUID를 입력하세요
-                });
-
-                const server = await myDevice.gatt.connect();
-                console.log('Connected to the device');
-
-                const service = await server.getPrimaryService('your_servo_service_uuid');
-                characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb'); // 서보모터 제어 특성의 UUID
-
-                document.getElementById('connectButton').disabled = true;
-                document.getElementById('increaseAngleButton').disabled = false;
-                document.getElementById('decreaseAngleButton').disabled = false;
-            } catch(error) {
-                console.log('There was an error: ' + error);
-            }
-        }
-
-        async function increaseAngle() {
-            if (!characteristic) {
-                console.log('Device is not connected.');
-                return;
-            }
-            await characteristic.writeValue(new Uint8Array([10])); // 서보모터 각도를 +10° 조절합니다.
-        }
-
-        async function decreaseAngle() {
-            if (!characteristic) {
-                console.log('Device is not connected.');
-                return;
-            }
-            await characteristic.writeValue(new Uint8Array([246])); // 서보모터 각도를 -10° 조절합니다. 246은 256 - 10으로 계산된 값입니다.
-        }
+        document.querySelector('#connect').addEventListener('click', function() {
+            navigator.bluetooth.requestDevice({
+                // 'acceptAllDevices'를 true로 설정하여 모든 장치를 볼 수 있게 하거나,
+                // 'filters'를 사용하여 특정 장치를 필터링할 수 있습니다.
+                acceptAllDevices: true,
+                optionalServices: ['battery_service'] // 사용하려는 서비스의 UUID를 여기에 추가하세요.
+            })
+            .then(device => {
+                console.log('Connecting to device...', device);
+                return device.gatt.connect();
+            })
+            .then(server => {
+                // 서버에 연결되면, 여기에서 더 많은 작업을 수행할 수 있습니다.
+                console.log('Connected to server', server);
+            })
+            .catch(error => {
+                console.error('Connection failed', error);
+            });
+        });
     </script>
 </body>
 </html>
