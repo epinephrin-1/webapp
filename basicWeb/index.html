@@ -1,35 +1,32 @@
-<!-- This code was written by Juneui Hong. -->
-
 <!DOCTYPE html>
-<meta charset="utf-8">
-<html>
-  <head>
-    <title>홍쌤의 블루투스 웹컨트롤러</title>
-    <script src="https://www.gstatic.com/firebasejs/4.6.2/firebase.js"></script>
-  </head>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>홍쌤의 블루투스 웹컨트롤러</title>
+</head>
+<body>
+  <center>
+    <h1>블루투스 웹컨트롤러</h1>
+    <button id="bluetoothButton">블루투스</button>
 
-  <body>
-    <center>
-      <h1>블루투스 웹컨트롤러</h1>
-      <button id="bluetoothButton">블루투스</button>
-    
-      <script>
-      const bluetoothButton = document.getElementById("bluetoothButton")
-      
-      bluetoothButton.addEventListener("click", () => {
-        navigator.bluetooth.requestDevice({
-          filters: [{ services: ["DD1481CE-70E0-51D8-5C19-F946E9EB43A9"] }]
-        })
-      })
-      </script>
-      </p>
-      </p>
+    <script>
+      const bluetoothButton = document.getElementById("bluetoothButton");
 
-      <button type="button" onclick="servo_up()">각도 +</button>
-      <button type="button" onclick="servo_down()">각도 -</button>
-    </center>
+      bluetoothButton.addEventListener("click", async () => {
+        try {
+          const device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: ["0000ffe0-0000-1000-8000-00805f9b34fb"] }]
+          });
+          console.log('Connected to device:', device.name);
+          // 여기에 더 많은 로직을 추가할 수 있습니다. 예를 들어, GATT 서버에 연결
+        } catch (error) {
+          console.error('Connection failed:', error);
+        }
+      });
+    </script>
 
-    <!-- Firebase 정보 가져와서 게이지에 표현하기, 제어용 버튼 클릭 시 Firebase에 데이터 보내기 -->
-    <script type="text/javascript" src="firebase.js"> </script>
-  </body>
+    <button type="button" onclick="servo_up()">각도 +</button>
+    <button type="button" onclick="servo_down()">각도 -</button>
+  </center>
+</body>
 </html>
