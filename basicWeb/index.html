@@ -30,7 +30,7 @@
             statusDiv.textContent = 'Requesting Bluetooth device...';
             navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: ['battery_service'] // 사용하려는 서비스의 UUID를 여기에 추가하세요.
+                optionalServices: ['DD1481CE-70E0-51D8-5C19-F946E9EB43A9'] // 사용하려는 서비스의 UUID를 여기에 추가하세요.
             })
             .then(device => {
                 statusDiv.textContent = 'Connecting to ' + device.name + '...';
